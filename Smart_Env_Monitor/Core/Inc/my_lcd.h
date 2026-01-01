@@ -1,4 +1,3 @@
-
 #ifndef LCD16X2_I2C_H_
 #define LCD16X2_I2C_H_
 

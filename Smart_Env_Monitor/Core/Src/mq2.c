@@ -4,6 +4,7 @@
  *  Created on: Dec 31, 2025
  *      Author: Prakash
  */
+
 #include "mq2.h"
 #include "stm32f4xx_hal.h"
 extern ADC_HandleTypeDef hadc1;
@@ -21,4 +22,3 @@ uint16_t mq2_Read()
 	return val;
 
 }
-

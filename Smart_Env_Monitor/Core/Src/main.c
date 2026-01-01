@@ -21,6 +21,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "main.h"
+#include "My_lcd.h"
+#include "Mq2.h"
+#include "DHT11.h"
+#include <stdio.h>
+#include<string.h>
 
 /* USER CODE END Includes */
 
@@ -94,13 +100,22 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-char str [50];
-int gas ;
- if (!lcd16x2_i2c_init(&hi2c1))
- {
-	 //Lcd Not Detected
-	 while(1);
- }
+
+  uint8_t temperature = 0;
+  uint8_t humidity = 0;
+  char str[20];
+  char str1[50];
+  int gas;
+    if (!lcd16x2_i2c_init(&hi2c1))
+        {
+            // LCD not detected
+            while(1);
+         }
+    lcd16x2_i2c_clear();
+    lcd16x2_i2c_setCursor(0, 0);
+   	lcd16x2_i2c_printf("start:");
+    HAL_Delay(2000);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -108,26 +123,51 @@ int gas ;
   while (1)
   {
     /* USER CODE END WHILE */
-	  gas= mq2_Read();
-	  	  lcd16x2_i2c_clear();
-	  	  lcd16x2_i2c_setCursor(0, 0);
-	  	  lcd16x2_i2c_printf("smoke detect:");
-	        lcd16x2_i2c_setCursor(1, 0);
-	        sprintf(str, " ADC:%d", gas);
-	  	 lcd16x2_i2c_printf(str);
-	  	  HAL_Delay(1000);
-
-	  	 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12|GPIO_PIN_13,GPIO_PIN_RESET);
-	      if (gas >200 && gas<500)
-	  	  {
-	  	 HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-	       }
-	      else if(gas>500 && gas<2000)
-	  	 {
-	  	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
-	  	   }
 
     /* USER CODE BEGIN 3 */
+
+	  gas = mq2_Read();
+	  		  	  	  lcd16x2_i2c_clear();
+	  		  	 	  lcd16x2_i2c_setCursor(0, 0);
+	  		  	 	  lcd16x2_i2c_printf("Alert:");
+	  		  	      lcd16x2_i2c_setCursor(0, 7);
+	  		  	      sprintf(str, " ADC:%d", gas);
+	  		  	 	  lcd16x2_i2c_printf(str);
+	  		  	 	  HAL_Delay(1000);
+
+	  		  	 	 HAL_GPIO_WritePin(GPIOD,GPIO_PIN_12|GPIO_PIN_13,GPIO_PIN_RESET);
+	  		  	     if (gas >200 && gas<500)
+	  		  	 	  {
+	  		  	 	 HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+	  		  	      }
+	  		  	     else if(gas>500 && gas<2000)
+	  		  	 	 {
+	  		  	 	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
+	  		  	 	 }
+
+	  		  	    // HAL_Delay(10);
+	  		  	    // lcd16x2_i2c_setCursor(1,0);
+
+	  		  	     	  //gas = mq2_Read();
+	  		  	     //lcd16x2_i2c_clear();
+	  		  	   HAL_Delay(2000);
+	  		  	     int test = DHT11_Read(&temperature, &humidity);
+	  		  	      lcd16x2_i2c_clear();
+	  		  	  	  lcd16x2_i2c_setCursor(1, 0);
+	  		  	  	  sprintf(str1, "ret = %d", test);
+	  		  	  	lcd16x2_i2c_printf(str1);
+
+	  		  	     	  if ( test == 0)
+	  		  	     	  {
+	  		  	     		  lcd16x2_i2c_clear();
+	  		  	     	      lcd16x2_i2c_setCursor(1, 0);
+	  		  	     	      sprintf(str1, "T:%d C,H=%d ", temperature, humidity);
+	  		  	     	      lcd16x2_i2c_printf(str1);
+	  		  	     	      HAL_Delay(1000);
+
+
+	  		  	     	  }
+
   }
   /* USER CODE END 3 */
 }
@@ -277,12 +317,23 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PD12 PD13 */
   GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
